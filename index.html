@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>추억네컷 (V1.01)</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700&family=Nanum+Pen+Script&family=Nanum+Gothic:wght@400;700&family=Gaegu:wght@400;700&family=Poor+Story&family=Dongle:wght@300;400;700&family=Hi+Melody&family=Do+Hyeon&family=Gowun+Dodum&display=swap" rel="stylesheet">
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body{
+      font-family:'Noto Sans KR',sans-serif;
+      overscroll-behavior:none;
+      touch-action:none;
+      user-select:none;
+      -webkit-user-select:none;
+    }
+    h1,h2,h3,.font-jua{font-family:'Jua',sans-serif;}
+    .font-pen{font-family:'Nanum Pen Script',cursive;}
+    .font-gothic{font-family:'Nanum Gothic',sans-serif;}
+
+    .hide-scrollbar::-webkit-scrollbar{display:none;}
+    .hide-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}
+
+    .color-dot{
+      width:28px;height:28px;border-radius:9999px;cursor:pointer;transition:all .2s;
+      border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.1);
+    }
+    .color-dot.active{border-color:#ec4899;transform:scale(1.15);box-shadow:0 0 8px rgba(236,72,153,.4);}
+
+    .preview-container{width:100%;height:100%;position:relative;display:flex;justify-content:center;align-items:center;}
+    .canvas-wrapper{position:relative;height:100%;aspect-ratio:2/6;background:#fff;box-shadow:0 4px 15px rgba(0,0,0,.1);}
+    .layer-canvas{position:absolute;top:0;left:0;width:100%;height:100%;display:block;}
+
+    .sticker-item{
+      font-size:1.5rem;display:flex;align-items:center;justify-content:center;
+      background:#fdf2f8;border-radius:9999px;cursor:pointer;width:44px;height:44px;
+      transition:all .1s;border:2px solid transparent;box-shadow:0 2px 4px rgba(0,0,0,.05);
+    }
+    .sticker-item:active{transform:scale(.9);background:#fce7f3;border-color:#f472b6;}
+
+    .font-selector{padding:8px;border-radius:8px;border:1px solid #e5e7eb;font-size:14px;cursor:pointer;}
+
+    /* ✅ [변경] 제목/문구 입력창 배경 통일 + 입력 영역 흰색 */
+    .mini-input{
+      width:100%;
+      padding:8px 10px;
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      background:#ffffff;          /* ✅ 흰색 */
+      font-size:13px;
+      outline:none;
+      user-select:text;            /* ✅ 입력영역 선택 허용 */
+      -webkit-user-select:text;
+    }
+    .mini-input:focus{ box-shadow:0 0 0 3px rgba(236,72,153,.16); border-color:#f9a8d4; }
+
+    .input-surface{
+      background:#ffffff;          /* ✅ 문구 textarea도 흰색 */
+      user-select:text;
+      -webkit-user-select:text;
+    }
+
+    .round-color-btn{
+      width:30px;height:30px;border-radius:9999px;
+      border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,.15);
+      cursor:pointer;
+    }
+
+    .color-section-title{
+      font-family:'Jua',sans-serif;
+      font-size:13px;
+      color:#374151;
+      margin:6px 0 8px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .color-grid{
+      display:grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap:10px;
+    }
+
+    .slot{
+      border-radius:16px;
+      border:2px dashed #e5e7eb;
+      background:#fff;
+      overflow:hidden;
+      position:relative;
+      cursor:pointer;
+      box-shadow:0 6px 18px rgba(0,0,0,.06);
+      transition:transform .12s, border-color .12s, box-shadow .12s;
+    }
+    .slot:active{ transform:scale(.98); }
+    .slot.filled{
+      border-style:solid;
+      border-color:#fbcfe8;
+      box-shadow:0 10px 24px rgba(236,72,153,.10);
+    }
+    .slot-badge{
+      position:absolute;top:10px;left:10px;
+      background:rgba(0,0,0,.45);color:#fff;
+      padding:6px 10px;border-radius:9999px;
+      font-size:12px;font-weight:700;
+      z-index:10;
+    }
+  </style>
+</head>
+
+<body class="h-[100dvh] w-full bg-gray-100 flex justify-center items-center overflow-hidden text-gray-800">
+  <div class="w-full h-full max-w-[500px] bg-white flex flex-col shadow-2xl relative overflow-hidden">
+
+    <header class="bg-white p-3 shadow-sm flex justify-center items-center z-10 shrink-0 h-14 border-b">
+      <div class="flex items-center gap-2">
+        <i data-lucide="image" class="text-pink-500 w-6 h-6"></i>
+        <h1 class="text-xl font-jua text-pink-600">추억네컷 <span class="text-xs text-gray-400 font-normal">V1.01</span></h1>
+      </div>
+    </header>
+
+    <main class="flex-1 relative w-full flex flex-col items-center overflow-hidden bg-gray-50">
+
+      <!-- 1 Start -->
+      <section id="step-start" class="text-center w-full h-full flex flex-col p-6 overflow-y-auto hide-scrollbar">
+        <div class="flex-1 flex flex-col justify-center items-center py-4">
+          <div class="bg-white p-10 rounded-[2.5rem] shadow-xl border-[6px] border-pink-100 w-full max-w-[380px] flex flex-col items-center gap-8">
+            <div class="flex flex-col items-center gap-4">
+              <div class="w-24 h-24 bg-pink-50 rounded-full flex items-center justify-center mb-2 shadow-inner">
+                <i data-lucide="sparkles" class="w-14 h-14 text-pink-500"></i>
+              </div>
+              <h2 class="text-3xl font-jua text-pink-600">추억을 꾸며요!</h2>
+              <p class="text-lg text-gray-600 font-medium leading-relaxed">
+                사진 4장을 업로드하고<br>인생네컷처럼 예쁘게 꾸며보세요
+              </p>
+            </div>
+
+            <div class="grid grid-cols-4 gap-5 w-full pt-6 border-t border-pink-50">
+              <div class="flex flex-col items-center justify-start gap-2">
+                <div class="w-12 h-12 bg-pink-50 rounded-2xl flex items-center justify-center text-pink-500 shadow-sm">
+                  <i data-lucide="upload" class="w-6 h-6"></i>
+                </div>
+                <span class="text-[12px] font-jua text-gray-600 leading-none">업로드</span>
+              </div>
+              <div class="flex flex-col items-center justify-start gap-2">
+                <div class="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-500 shadow-sm">
+                  <i data-lucide="palette" class="w-6 h-6"></i>
+                </div>
+                <span class="text-[12px] font-jua text-gray-600 leading-none">프레임</span>
+              </div>
+              <div class="flex flex-col items-center justify-start gap-2">
+                <div class="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-green-500 shadow-sm">
+                  <i data-lucide="smile" class="w-6 h-6"></i>
+                </div>
+                <span class="text-[12px] font-jua text-gray-600 leading-none">스티커</span>
+              </div>
+              <div class="flex flex-col items-center justify-start gap-2">
+                <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-500 shadow-sm">
+                  <i data-lucide="type" class="w-6 h-6"></i>
+                </div>
+                <span class="text-[12px] font-jua text-gray-600 leading-none">문구</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col items-center gap-6 mb-8 mt-2">
+          <button onclick="goToUploadStep()"
+            class="w-[240px] h-[70px] bg-pink-500 text-white font-jua text-2xl rounded-[1.8rem] shadow-lg hover:bg-pink-600 transition active:scale-95 border-b-4 border-pink-700
+                   flex items-center justify-center">
+            <span class="flex items-center justify-center gap-2">
+              <i data-lucide="upload" class="w-7 h-7"></i> 사진 업로드
+            </span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 2 Upload -->
+      <section id="step-upload" class="hidden flex flex-col items-center w-full h-full p-4 overflow-hidden">
+        <div class="w-full text-center mb-3">
+          <h2 class="text-2xl font-jua text-pink-600">사진 4장을 업로드하세요</h2>
+          <p class="text-gray-500 font-medium mt-1 text-base">
+            각 칸을 눌러 사진을 선택해요 (<span id="upload-count" class="text-pink-500">0</span> / 4)
+          </p>
+        </div>
+
+        <!-- slots -->
+        <div class="w-full flex-1 overflow-y-auto hide-scrollbar px-1 pb-3">
+          <div class="grid grid-cols-2 gap-3">
+            <!-- slot 1..4 -->
+            <div class="slot aspect-square" id="slot-0" onclick="triggerSlot(0)">
+              <div class="slot-badge">1</div>
+              <input id="file-0" type="file" accept="image/*" class="hidden" onchange="onSlotFile(0, event)" />
+              <div class="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-2" id="slot-ph-0">
+                <i data-lucide="image-plus" class="w-10 h-10"></i>
+                <div class="font-jua text-base">사진 선택</div>
+              </div>
+              <img id="slot-img-0" class="hidden w-full h-full object-cover" />
+            </div>
+
+            <div class="slot aspect-square" id="slot-1" onclick="triggerSlot(1)">
+              <div class="slot-badge">2</div>
+              <input id="file-1" type="file" accept="image/*" class="hidden" onchange="onSlotFile(1, event)" />
+              <div class="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-2" id="slot-ph-1">
+                <i data-lucide="image-plus" class="w-10 h-10"></i>
+                <div class="font-jua text-base">사진 선택</div>
+              </div>
+              <img id="slot-img-1" class="hidden w-full h-full object-cover" />
+            </div>
+
+            <div class="slot aspect-square" id="slot-2" onclick="triggerSlot(2)">
+              <div class="slot-badge">3</div>
+              <input id="file-2" type="file" accept="image/*" class="hidden" onchange="onSlotFile(2, event)" />
+              <div class="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-2" id="slot-ph-2">
+                <i data-lucide="image-plus" class="w-10 h-10"></i>
+                <div class="font-jua text-base">사진 선택</div>
+              </div>
+              <img id="slot-img-2" class="hidden w-full h-full object-cover" />
+            </div>
+
+            <div class="slot aspect-square" id="slot-3" onclick="triggerSlot(3)">
+              <div class="slot-badge">4</div>
+              <input id="file-3" type="file" accept="image/*" class="hidden" onchange="onSlotFile(3, event)" />
+              <div class="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-2" id="slot-ph-3">
+                <i data-lucide="image-plus" class="w-10 h-10"></i>
+                <div class="font-jua text-base">사진 선택</div>
+              </div>
+              <img id="slot-img-3" class="hidden w-full h-full object-cover" />
+            </div>
+          </div>
+
+          <div class="mt-4 flex items-center justify-center gap-2">
+            <button onclick="clearAllUploads()"
+              class="bg-white border border-gray-200 text-gray-600 font-jua px-4 py-2 rounded-full shadow-sm active:scale-95 transition flex items-center gap-2">
+              <i data-lucide="trash-2" class="w-4 h-4"></i> 모두 지우기
+            </button>
+          </div>
+
+          <p class="text-[11px] text-gray-400 mt-3 leading-snug text-center">
+            업로드한 사진은 브라우저 안에서만 사용돼요(서버 전송 없음).
+          </p>
+        </div>
+
+        <div class="w-full flex gap-3 shrink-0 h-16">
+          <button onclick="showStep('step-start')" class="flex-1 bg-gray-200 text-gray-600 font-jua text-xl rounded-xl shadow transition">이전</button>
+          <button id="btn-upload-next" onclick="goToFrameStep()" disabled class="flex-[2] bg-gray-300 text-white font-jua text-2xl rounded-xl shadow transition">프레임 선택</button>
+        </div>
+      </section>
+
+      <!-- 3 Frame -->
+      <section id="step-decorate-frame" class="hidden flex flex-col items-center w-full h-full p-4 overflow-hidden">
+        <div class="flex-1 w-full flex overflow-hidden gap-4 mb-4">
+          <div class="flex-1 bg-white rounded-2xl p-4 shadow-md border border-gray-100 flex flex-col">
+            <h3 class="text-lg font-jua text-pink-500 mb-2 text-center border-b pb-3">프레임 색상</h3>
+            <div id="color-dots-grid" class="flex-1 overflow-y-auto hide-scrollbar grid grid-cols-3 gap-y-4 gap-x-1 py-4 content-start justify-items-center"></div>
+          </div>
+
+          <div class="flex-1 flex items-center justify-center bg-gray-200/40 rounded-2xl border-2 border-dashed border-gray-200 overflow-hidden p-3">
+            <div class="preview-container">
+              <div class="canvas-wrapper">
+                <canvas id="editor-canvas" class="layer-canvas"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full flex gap-3 shrink-0 h-16">
+          <button onclick="showStep('step-upload')" class="flex-1 bg-gray-200 text-gray-600 font-jua text-xl rounded-xl shadow transition">이전</button>
+          <button onclick="goToStickerStep()" class="flex-[2] bg-pink-500 text-white font-jua text-2xl rounded-xl shadow transition">스티커 꾸미기</button>
+        </div>
+      </section>
+
+      <!-- 4 Sticker -->
+      <section id="step-decorate-sticker" class="hidden flex flex-col items-center w-full h-full p-4 overflow-hidden">
+        <div class="flex-1 w-full flex overflow-hidden gap-4 mb-4">
+          <div class="flex-1 bg-white rounded-2xl p-4 shadow-md border border-gray-100 flex flex-col">
+            <h3 class="text-lg font-jua text-pink-500 mb-2 text-center border-b pb-3 shrink-0">스티커 선택</h3>
+            <div id="sticker-grid" class="flex-1 overflow-y-auto hide-scrollbar grid grid-cols-3 gap-y-4 gap-x-2 py-4 content-start justify-items-center"></div>
+          </div>
+
+          <div class="flex-1 flex items-center justify-center bg-gray-200/40 rounded-2xl border-2 border-dashed border-gray-200 overflow-hidden p-3">
+            <div class="preview-container">
+              <div class="canvas-wrapper">
+                <canvas id="bg-canvas-sticker" class="layer-canvas"></canvas>
+                <canvas id="sticker-canvas" class="layer-canvas"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full flex gap-3 shrink-0 h-16">
+          <button onclick="showStep('step-decorate-frame')" class="flex-1 bg-gray-200 text-gray-600 font-jua text-xl rounded-xl shadow transition">이전</button>
+          <button onclick="goToTextStep()" class="flex-[2] bg-pink-500 text-white font-jua text-2xl rounded-xl shadow transition">문구 추가하기</button>
+        </div>
+      </section>
+
+      <!-- 5 Text -->
+      <section id="step-decorate-text" class="hidden flex flex-col items-center w-full h-full p-4 overflow-hidden">
+        <div class="flex-1 w-full flex overflow-hidden gap-4 mb-4">
+          <div class="flex-1 bg-white rounded-2xl p-4 shadow-md border border-gray-100 flex flex-col gap-3 overflow-hidden">
+            <h3 class="text-lg font-jua text-pink-500 mb-1 text-center border-b pb-3 shrink-0">문구 입력</h3>
+
+            <!-- 제목 -->
+            <div class="rounded-xl border border-pink-100 bg-pink-50/40 p-3">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-bold text-pink-600">제목</span>
+                <button onclick="applyTitleFromInputs()"
+                        class="bg-pink-500 text-white px-3 py-1.5 rounded-xl font-jua shadow-sm hover:bg-pink-600 active:scale-95 transition">
+                  적용
+                </button>
+              </div>
+
+              <!-- ✅ 흰색 입력 영역 -->
+              <input id="input-title-content" class="mini-input" placeholder="예: 우리 반 추억" />
+
+              <div class="grid grid-cols-2 gap-2 mt-2">
+                <select id="title-font-selector" class="font-selector bg-white" onchange="onTitleFontChanged(this.value)">
+                  <option value="Jua" selected>주아체</option>
+                  <option value="Gowun Dodum">고운돋움</option>
+                  <option value="Do Hyeon">도현체</option>
+                  <option value="Gaegu">개구쟁이</option>
+                  <option value="Hi Melody">하이멜로디</option>
+                  <option value="Dongle">동글</option>
+                  <option value="Poor Story">푸어스토리</option>
+                  <option value="Nanum Pen Script">나눔펜</option>
+                  <option value="Nanum Gothic">나눔고딕</option>
+                  <option value="Noto Sans KR">노토산스</option>
+                </select>
+                <input id="title-font-size" type="number" min="18" max="140" class="mini-input" value="68" />
+              </div>
+
+              <div class="mt-3 flex items-center justify-between">
+                <span class="text-sm font-bold text-black">제목 색깔</span>
+                <button id="btn-title-color" class="round-color-btn" title="제목 색깔" onclick="openColorPicker('title')"></button>
+              </div>
+
+              <p class="text-[11px] text-gray-400 mt-2 leading-snug">
+                캔버스에서 제목을 선택한 뒤, 빨간 X(삭제)로 제목도 지울 수 있어요.
+              </p>
+            </div>
+
+            <!-- 본문 문구 -->
+            <div class="rounded-xl border border-gray-200 bg-white p-3 mt-2">
+              <div class="text-pink-600 font-jua mb-2">(아래) 원하는 내용 입력</div>
+
+              <!-- ✅ 흰색 입력 영역 + 동일 톤 -->
+              <textarea id="input-text-content" rows="2" placeholder="하단 문구를 입력하세요 (최대 2줄)"
+                class="input-surface w-full p-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 font-gothic text-sm resize-none"></textarea>
+
+              <div class="flex gap-2 mt-2">
+                <select id="font-selector" class="font-selector flex-1 bg-white" onchange="onBodyFontChanged(this.value)">
+                  <option value="Jua" selected>주아체</option>
+                  <option value="Gowun Dodum">고운돋움</option>
+                  <option value="Do Hyeon">도현체</option>
+                  <option value="Gaegu">개구쟁이</option>
+                  <option value="Hi Melody">하이멜로디</option>
+                  <option value="Dongle">동글</option>
+                  <option value="Poor Story">푸어스토리</option>
+                  <option value="Nanum Pen Script">나눔펜</option>
+                  <option value="Nanum Gothic">나눔고딕</option>
+                  <option value="Noto Sans KR">노토산스</option>
+                </select>
+
+                <button id="btn-add-or-apply"
+                        onclick="addOrApplyBodyText()"
+                        class="bg-pink-500 text-white px-4 py-2 rounded-xl font-jua shadow-sm hover:bg-pink-600 active:scale-95 transition">
+                  추가
+                </button>
+              </div>
+
+              <div class="mt-3 flex items-center justify-between">
+                <span class="text-sm font-bold text-gray-700">문구 색깔</span>
+                <button id="btn-body-color" class="round-color-btn" title="문구 색깔" onclick="openColorPicker('body')"></button>
+              </div>
+
+              <p class="text-[11px] text-gray-400 mt-2 leading-snug">
+                캔버스에서 문구를 클릭하면 선택됩니다. (드래그=이동/핸들=크기/빨간 X=삭제)
+              </p>
+            </div>
+          </div>
+
+          <div class="flex-1 flex items-center justify-center bg-gray-200/40 rounded-2xl border-2 border-dashed border-gray-200 overflow-hidden p-3">
+            <div class="preview-container">
+              <div class="canvas-wrapper">
+                <canvas id="bg-canvas-text" class="layer-canvas"></canvas>
+                <canvas id="text-canvas" class="layer-canvas"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full flex gap-3 shrink-0 h-16">
+          <button onclick="showStep('step-decorate-sticker')" class="flex-1 bg-gray-200 text-gray-600 font-jua text-xl rounded-xl shadow transition">이전</button>
+          <button onclick="finishDecorate()" class="flex-[2] bg-indigo-600 text-white font-jua text-2xl rounded-xl shadow transition">완성하기</button>
+        </div>
+      </section>
+
+      <!-- 6 Result -->
+      <section id="step-result" class="hidden flex flex-col items-center w-full h-full p-4 overflow-hidden">
+        <h2 class="text-2xl font-jua text-indigo-600 mb-3">추억네컷 완성!</h2>
+
+        <div class="flex-1 w-full flex items-center justify-center py-2 overflow-hidden mb-4">
+          <canvas id="print-canvas" class="h-full shadow-2xl rounded-sm"></canvas>
+          <canvas id="print-canvas-4x6" class="hidden"></canvas>
+        </div>
+
+        <div class="w-full flex flex-col gap-3 shrink-0 px-2 max-w-[400px]">
+          <div class="flex gap-2 w-full">
+            <button onclick="downloadResult()" class="flex-1 bg-indigo-500 text-white font-jua text-lg py-3 rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-1">
+              <i data-lucide="download" class="w-5 h-5"></i> 저장 (2x6)
+            </button>
+            <button onclick="downloadPrintResult()" class="flex-1 bg-green-500 text-white font-jua text-lg py-3 rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-1">
+              <i data-lucide="printer" class="w-5 h-5"></i> 출력용 (4x6)
+            </button>
+          </div>
+
+          <div class="flex gap-3 h-14 w-full">
+            <button onclick="showStep('step-decorate-text')" class="flex-1 bg-gray-200 text-gray-600 font-jua text-lg rounded-xl shadow active:scale-95 transition">이전 (꾸미기)</button>
+            <button onclick="resetToHome()" class="flex-1 bg-pink-500 text-white font-jua text-lg rounded-xl shadow active:scale-95 transition">처음으로</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ✅ Color Picker Modal -->
+      <div id="color-modal" class="hidden absolute inset-0 z-50">
+        <div class="absolute inset-0 bg-black/30" onclick="closeColorPicker()"></div>
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-[420px] bg-white rounded-2xl shadow-2xl border border-gray-100 p-4">
+          <div class="flex items-center justify-between mb-3">
+            <div class="font-jua text-lg text-gray-800" id="color-modal-title">색상 선택</div>
+            <button class="px-3 py-1.5 rounded-xl bg-gray-100 font-jua active:scale-95" onclick="closeColorPicker()">닫기</button>
+          </div>
+
+          <div id="color-palette-title" class="hidden">
+            <div class="color-section-title">추천 파스텔</div>
+            <div class="grid grid-cols-5 gap-3 mb-4" id="pastel-color-grid"></div>
+          </div>
+
+          <div id="color-palette-body" class="hidden">
+            <div class="color-section-title">파스텔 추천 5</div>
+            <div class="color-grid mb-4" id="body-pastel5-grid"></div>
+
+            <div class="color-section-title">문구에 어울리는 단색 10</div>
+            <div class="color-grid mb-4" id="body-solid10-grid"></div>
+          </div>
+
+          <div class="flex items-center justify-between gap-3">
+            <button class="flex-1 bg-pink-500 text-white font-jua py-2 rounded-xl shadow active:scale-95" onclick="openNativeColor()">
+              원하는 색상
+            </button>
+            <input id="native-color" type="color" class="w-14 h-10 rounded-xl border border-gray-200 bg-white hidden" />
+            <button class="flex-1 bg-gray-900 text-white font-jua py-2 rounded-xl shadow active:scale-95" onclick="applyNativeColor()">
+              적용
+            </button>
+          </div>
+
+          <p class="text-[11px] text-gray-400 mt-3 leading-snug">
+            추천색을 누르거나 “원하는 색상”에서 고른 뒤 적용하세요.
+          </p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+<script>
+  // =========================================================
+  // ✅ Version control
+  // =========================================================
+  const APP_VERSION = "V1.01";
+
+  // ✅ 버전 히스토리
+  // - 추억네컷 (V1.00): 최초 업로드형 4컷 + 프레임/스티커/문구 편집 + 저장/출력용
+  // - 추억네컷 (V1.01): 입력창(제목/문구)에서 Del/Backspace 정상 동작, 입력창 배경/입력영역 흰색 통일
+
+  // =========================================================
+  // ✅ Handle sizes
+  // =========================================================
+  const HANDLE_VISUAL_R = 24;
+  const HANDLE_HIT_R    = 26;
+  const HANDLE_OFFSET   = 34;
+
+  // =========================================================
+  // ✅ Layout (2x6 photostrip)
+  // =========================================================
+  const FRAME_LAYOUT = {
+    canvasW: 600,
+    canvasH: 1800,
+    marginX: 90,
+    titleY: 60,
+    startY: 180,
+    gapY: 30,
+    photoAspectH: 0.72,
+    dateBottomPadding: 110,
+    dateTextTopGap: 40
+  };
+
+  function pad2(n){ return String(n).padStart(2,'0'); }
+  function makeTimeStamp(){
+    const d = new Date();
+    return `${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}${pad2(d.getSeconds())}`;
+  }
+  const makeId = () => {
+    try { return crypto.randomUUID(); }
+    catch { return String(Date.now()) + "_" + Math.random().toString(16).slice(2); }
+  };
+
+  function ensureCanvasSize(canvasId, w=FRAME_LAYOUT.canvasW, h=FRAME_LAYOUT.canvasH){
+    const c = document.getElementById(canvasId);
+    if(!c) return;
+    if(c.width !== w) c.width = w;
+    if(c.height !== h) c.height = h;
+  }
+  function getCanvasPoint(canvas, clientX, clientY){
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return { x:(clientX - rect.left)*scaleX, y:(clientY - rect.top)*scaleY };
+  }
+  function hitHandle(px, py, cx, cy){
+    const dx = px - cx, dy = py - cy;
+    return (dx*dx + dy*dy) <= (HANDLE_HIT_R * HANDLE_HIT_R);
+  }
+
+  // ---------- State ----------
+  let state = {
+    version: APP_VERSION,
+
+    // 업로드된 4장 (dataURL)
+    photos: [null, null, null, null],
+    selectedIndices: [0,1,2,3],
+
+    frameStyle: '#ffffff',
+    todayStr: new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit' }),
+
+    stickers: [],
+    texts: [],
+
+    titleEnabled: false,
+    titleText: {
+      id: 'title-text',
+      role: 'title',
+      text: '추억네컷',
+      x: FRAME_LAYOUT.canvasW/2,
+      y: FRAME_LAYOUT.titleY + 70,
+      fontSize: 68,
+      fontFamily: 'Jua',
+      color: null
+    },
+
+    selectedItem: null,
+    selectedType: null,
+
+    currentBodyColor: '#000000',
+    _colorTarget: null
+  };
+
+  // Frame colors (same vibe)
+  const colors = [
+    '#ffffff', '#f3f4f6', '#d1d5db', '#4b5563', '#1f2937', '#000000',
+    '#FAD0C4', '#FFD1DC', '#FFABAB', '#FFC3A0', '#FF9AA2', '#FFB7B2',
+    '#FFDAC1', '#FFFFD1', '#FFF5BA', '#F9F871', '#FFC75F', '#FFD8B1',
+    '#B5EAD7', '#C7E9B0', '#E2F0CB', '#A8E6CF', '#DCEDC1', '#00C9A7',
+    '#BAE1FF', '#C7CEEA', '#A2D2FF', '#00D2FC', '#4D8076'
+  ];
+
+  const pastel15 = [
+    '#FFD1DC','#FFB7C5','#FFC9DE','#FFE1C6','#FFD8B1',
+    '#FFF1B8','#FFF6CC','#D9F7BE','#B7E4C7','#B5EAD7',
+    '#BDE0FE','#A2D2FF','#C7CEEA','#E0BBE4','#FEC8D8'
+  ];
+
+  const bodyPastel5 = ['#FFD1DC', '#FFE1C6', '#FFF6CC', '#B7E4C7', '#BDE0FE'];
+  const bodySolid10 = [
+    '#111827','#374151','#6B7280','#EF4444','#F97316',
+    '#EAB308','#22C55E','#06B6D4','#3B82F6','#A855F7'
+  ];
+
+  const stickerList = [
+    '❤️','💖','✨','⭐','🍀','🌸','🌈','🔥','🎈','🎉',
+    '🎀','👑','🧸','🍭','🍓','🍑','🍋','🥑','🍕','🍦',
+    '🐶','🐱','🐰','🐼','🦊','🐻','🐣','🦄','🐝',
+    '😊','😍','🥳','😎','🤩','🥰','😜','👻','👽','👾',
+    '💬','💡','🎵','🎨','📸','🕶️','💍','💎','👟','👜',
+    '🌻','🍁','🌙','☁️','🍒','🍩','🍔','🍟','🏀','⚽'
+  ];
+
+  function getTitleDefaultPosition(fontSize){
+    const safeTop = 20;
+    const safeBottom = FRAME_LAYOUT.startY - 20;
+    const y = Math.max(safeTop + fontSize*0.6, Math.min(safeBottom - fontSize*0.3, FRAME_LAYOUT.titleY + 70));
+    return { x: FRAME_LAYOUT.canvasW/2, y };
+  }
+
+  function defaultTitleColorForFrame(){
+    const isDark = ['#000000','#1f2937','#4b5563'].includes(state.frameStyle);
+    return isDark ? '#ffffff' : '#ec4899';
+  }
+
+  function getAllTextItems(){
+    return state.titleEnabled ? [state.titleText, ...state.texts] : [...state.texts];
+  }
+  function isTitleItem(it){ return it && it.role === 'title'; }
+
+  // =========================================================
+  // ✅ Step switch
+  // =========================================================
+  function showStep(stepId){
+    document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+    document.getElementById(stepId).classList.remove('hidden');
+    lucide.createIcons();
+
+    if(stepId === 'step-decorate-frame'){
+      ensureCanvasSize('editor-canvas');
+      initColorPalette();
+      drawFrameCanvas('editor-canvas');
+    }
+
+    if(stepId === 'step-decorate-sticker'){
+      ensureCanvasSize('bg-canvas-sticker');
+      ensureCanvasSize('sticker-canvas');
+      drawFrameCanvas('bg-canvas-sticker');
+      renderStickerGrid();
+      initStickerInteractionEvents('sticker-canvas');
+      renderStickers();
+    }
+
+    if(stepId === 'step-decorate-text'){
+      ensureCanvasSize('bg-canvas-text');
+      ensureCanvasSize('text-canvas');
+      drawBaseWithStickers('bg-canvas-text');
+      initTextInteractionEvents('text-canvas');
+      renderTexts();
+
+      if(state.titleEnabled) syncTitleInputsFromState();
+      else clearTitleInputs();
+
+      syncTitleColorButton();
+      syncBodyColorButton();
+      updateAddApplyButtonLabel();
+    }
+  }
+
+  function goToUploadStep(){
+    resetDecorationsOnly();
+    updateUploadUI();
+    showStep('step-upload');
+  }
+
+  // =========================================================
+  // ✅ Upload (4 slots)
+  // =========================================================
+  function triggerSlot(i){
+    const input = document.getElementById(`file-${i}`);
+    if(input) input.click();
+  }
+
+  function readFileAsDataURL(file){
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+
+  async function onSlotFile(i, event){
+    const f = (event.target.files || [])[0];
+    event.target.value = '';
+    if(!f || !f.type || !f.type.startsWith('image/')) return;
+
+    const dataUrl = await readFileAsDataURL(f);
+    state.photos[i] = dataUrl;
+
+    // paint slot
+    const slot = document.getElementById(`slot-${i}`);
+    const ph = document.getElementById(`slot-ph-${i}`);
+    const img = document.getElementById(`slot-img-${i}`);
+    if(slot) slot.classList.add('filled');
+    if(ph) ph.classList.add('hidden');
+    if(img){
+      img.src = dataUrl;
+      img.classList.remove('hidden');
+    }
+
+    updateUploadUI();
+    lucide.createIcons();
+  }
+
+  function clearAllUploads(){
+    for(let i=0;i<4;i++){
+      state.photos[i] = null;
+      const slot = document.getElementById(`slot-${i}`);
+      const ph = document.getElementById(`slot-ph-${i}`);
+      const img = document.getElementById(`slot-img-${i}`);
+      if(slot) slot.classList.remove('filled');
+      if(ph) ph.classList.remove('hidden');
+      if(img){
+        img.src = '';
+        img.classList.add('hidden');
+      }
+      const input = document.getElementById(`file-${i}`);
+      if(input) input.value = '';
+    }
+    updateUploadUI();
+  }
+
+  function updateUploadUI(){
+    const cnt = state.photos.filter(Boolean).length;
+    const label = document.getElementById('upload-count');
+    if(label) label.textContent = String(cnt);
+
+    const btn = document.getElementById('btn-upload-next');
+    const ok = (cnt === 4);
+    if(btn){
+      btn.disabled = !ok;
+      btn.className = `flex-[2] font-jua text-2xl rounded-xl shadow transition ${
+        ok ? 'bg-pink-500 text-white' : 'bg-gray-300 text-white'
+      }`;
+    }
+  }
+
+  // =========================================================
+  // ✅ Frame palette
+  // =========================================================
+  function initColorPalette(){
+    const grid = document.getElementById('color-dots-grid');
+    if(!grid) return;
+    grid.innerHTML = '';
+    colors.forEach(color => {
+      const dot = document.createElement('div');
+      dot.className = `color-dot ${state.frameStyle === color ? 'active' : ''}`;
+      dot.style.backgroundColor = color;
+      dot.onclick = () => {
+        state.frameStyle = color;
+        document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+        dot.classList.add('active');
+        drawFrameCanvas('editor-canvas');
+        syncTitleColorButton();
+        if(isStepVisible('step-decorate-text')) renderTexts();
+      };
+      grid.appendChild(dot);
+    });
+  }
+
+  function goToFrameStep(){
+    if(state.photos.filter(Boolean).length !== 4){
+      alert('사진 4장을 모두 업로드해 주세요.');
+      return;
+    }
+    showStep('step-decorate-frame');
+  }
+
+  // =========================================================
+  // ✅ Draw frame (photos + date)
+  // =========================================================
+  async function drawFrameCanvas(canvasOrId){
+    const canvas = (typeof canvasOrId === 'string') ? document.getElementById(canvasOrId) : canvasOrId;
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    ensureCanvasSize(canvas.id || canvas, FRAME_LAYOUT.canvasW, FRAME_LAYOUT.canvasH);
+
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    ctx.fillStyle = state.frameStyle;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    const { marginX, startY, gapY, photoAspectH } = FRAME_LAYOUT;
+    const imgW = canvas.width - (marginX * 2);
+    const imgH = imgW * photoAspectH;
+
+    for(let i=0;i<4;i++){
+      const src = state.photos[i];
+      if(!src) continue;
+
+      const x = marginX;
+      const y = startY + i*(imgH + gapY);
+
+      const img = new Image();
+      img.src = src;
+
+      await new Promise(r => {
+        img.onload = () => {
+          const sW = img.naturalWidth || img.width;
+          const sH = img.naturalHeight || img.height;
+
+          const srcAspect = sW / sH;
+          const destAspect = imgW / imgH;
+
+          let drawW, drawH;
+          if(srcAspect > destAspect){
+            drawH = imgH;
+            drawW = drawH * srcAspect;
+          }else{
+            drawW = imgW;
+            drawH = drawW / srcAspect;
+          }
+
+          const dx = x + (imgW - drawW)/2;
+          const dy = y + (imgH - drawH)/2;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(x, y, imgW, imgH);
+          ctx.clip();
+          ctx.drawImage(img, dx, dy, drawW, drawH);
+          ctx.restore();
+
+          ctx.save();
+          ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x, y, imgW, imgH);
+          ctx.restore();
+
+          r();
+        };
+        img.onerror = () => r();
+      });
+    }
+
+    const isDark = ['#000000','#1f2937','#4b5563'].includes(state.frameStyle);
+    ctx.fillStyle = isDark ? '#aaaaaa' : '#555555';
+    ctx.font = '30px Noto Sans KR';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(state.todayStr, canvas.width/2, canvas.height - FRAME_LAYOUT.dateBottomPadding);
+  }
+
+  // =========================================================
+  // ✅ Sticker
+  // =========================================================
+  function renderStickerGrid(){
+    const grid = document.getElementById('sticker-grid');
+    if(!grid) return;
+    grid.innerHTML = '';
+    stickerList.forEach(emoji => {
+      const item = document.createElement('div');
+      item.className = 'sticker-item';
+      item.innerText = emoji;
+      item.onclick = () => addSticker(emoji);
+      grid.appendChild(item);
+    });
+  }
+  function goToStickerStep(){ showStep('step-decorate-sticker'); }
+  function goToTextStep(){ showStep('step-decorate-text'); }
+
+  function addSticker(emoji){
+    const it = { id: makeId(), text: emoji, x: 300, y: 900, scale: 2.0 };
+    state.stickers.push(it);
+    state.selectedItem = it;
+    state.selectedType = 'sticker';
+    renderStickers();
+  }
+
+  function getStickerBoxCanvas(it){
+    const half = 44 * it.scale;
+    return { x1: it.x - half, y1: it.y - half, x2: it.x + half, y2: it.y + half };
+  }
+
+  function getHandleCentersFromBox(box){
+    const delCx = box.x2 + HANDLE_OFFSET;
+    const delCy = box.y1 - HANDLE_OFFSET;
+    const resCx = box.x2 + HANDLE_OFFSET;
+    const resCy = box.y2 + HANDLE_OFFSET;
+    return { delCx, delCy, resCx, resCy };
+  }
+
+  function drawHandlesFixed(ctx, box){
+    ctx.save();
+    ctx.strokeStyle = '#ec4899';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(box.x1, box.y1, box.x2-box.x1, box.y2-box.y1);
+
+    const { delCx, delCy, resCx, resCy } = getHandleCentersFromBox(box);
+    const r = HANDLE_VISUAL_R;
+
+    // delete
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath(); ctx.arc(delCx, delCy, r, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(delCx - r*0.55, delCy - r*0.55);
+    ctx.lineTo(delCx + r*0.55, delCy + r*0.55);
+    ctx.moveTo(delCx + r*0.55, delCy - r*0.55);
+    ctx.lineTo(delCx - r*0.55, delCy + r*0.55);
+    ctx.stroke();
+
+    // resize
+    ctx.fillStyle = '#3b82f6';
+    ctx.beginPath(); ctx.arc(resCx, resCy, r, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(resCx - r*0.55, resCy - r*0.55);
+    ctx.lineTo(resCx + r*0.55, resCy + r*0.55);
+
+    ctx.moveTo(resCx - r*0.55, resCy - r*0.15);
+    ctx.lineTo(resCx - r*0.55, resCy - r*0.55);
+    ctx.lineTo(resCx - r*0.15, resCy - r*0.55);
+
+    ctx.moveTo(resCx + r*0.55, resCy + r*0.15);
+    ctx.lineTo(resCx + r*0.55, resCy + r*0.55);
+    ctx.lineTo(resCx + r*0.15, resCy + r*0.55);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function renderStickers(){
+    const canvas = document.getElementById('sticker-canvas');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    state.stickers.forEach(s => {
+      ctx.save();
+      ctx.translate(s.x, s.y);
+      ctx.scale(s.scale, s.scale);
+      ctx.font = '50px serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(s.text, 0, 0);
+      ctx.restore();
+    });
+
+    if(state.selectedType === 'sticker' && state.selectedItem){
+      const box = getStickerBoxCanvas(state.selectedItem);
+      drawHandlesFixed(ctx, box);
+    }
+  }
+
+  function initStickerInteractionEvents(canvasId){
+    const canvas = document.getElementById(canvasId);
+    if(!canvas) return;
+
+    canvas.style.touchAction = 'none';
+    canvas.onpointerdown = null;
+    canvas.onpointermove = null;
+    canvas.onpointerup = null;
+    canvas.onpointercancel = null;
+
+    let active = null;
+
+    function hitBox(p, box){
+      return (p.x >= box.x1 && p.x <= box.x2 && p.y >= box.y1 && p.y <= box.y2);
+    }
+
+    function pickSticker(p){
+      for(let i = state.stickers.length - 1; i >= 0; i--){
+        const it = state.stickers[i];
+        const box = getStickerBoxCanvas(it);
+        const { delCx, delCy, resCx, resCy } = getHandleCentersFromBox(box);
+
+        const onDel = hitHandle(p.x, p.y, delCx, delCy);
+        const onRes = hitHandle(p.x, p.y, resCx, resCy);
+        const onBody = hitBox(p, box);
+
+        if(onDel || onRes || onBody){
+          return { item: it, onDel, onRes, onBody };
+        }
+      }
+      return null;
+    }
+
+    function deleteStickerById(id){
+      const idx = state.stickers.findIndex(s => s.id === id);
+      if(idx > -1) state.stickers.splice(idx, 1);
+      state.selectedItem = null;
+      state.selectedType = null;
+      renderStickers();
+    }
+
+    canvas.onpointerdown = (e) => {
+      const p = getCanvasPoint(canvas, e.clientX, e.clientY);
+      const hit = pickSticker(p);
+
+      if(!hit){
+        state.selectedItem = null;
+        state.selectedType = null;
+        renderStickers();
+        return;
+      }
+
+      state.selectedItem = hit.item;
+      state.selectedType = 'sticker';
+      renderStickers();
+
+      if(hit.onDel){
+        deleteStickerById(hit.item.id);
+        return;
+      }
+
+      if(hit.onRes){
+        const cx = hit.item.x;
+        const cy = hit.item.y;
+        const startDist = Math.max(1, Math.hypot(p.x - cx, p.y - cy));
+        active = { mode:'resize', item: hit.item, cx, cy, startDist, startScale: hit.item.scale };
+        canvas.setPointerCapture(e.pointerId);
+        return;
+      }
+
+      active = { mode:'drag', item: hit.item, offsetX: hit.item.x - p.x, offsetY: hit.item.y - p.y };
+      canvas.setPointerCapture(e.pointerId);
+    };
+
+    canvas.onpointermove = (e) => {
+      if(!active) return;
+      const p = getCanvasPoint(canvas, e.clientX, e.clientY);
+
+      if(active.mode === 'drag'){
+        active.item.x = p.x + active.offsetX;
+        active.item.y = p.y + active.offsetY;
+        renderStickers();
+        return;
+      }
+
+      if(active.mode === 'resize'){
+        const newDist = Math.max(1, Math.hypot(p.x - active.cx, p.y - active.cy));
+        const ratio = newDist / active.startDist;
+        active.item.scale = Math.min(7, Math.max(0.5, active.startScale * ratio));
+        renderStickers();
+        return;
+      }
+    };
+
+    canvas.onpointerup = () => { active = null; };
+    canvas.onpointercancel = () => { active = null; };
+  }
+
+  async function drawBaseWithStickers(canvasId){
+    const canvas = (typeof canvasId === 'string') ? document.getElementById(canvasId) : canvasId;
+    if(!canvas) return;
+
+    await drawFrameCanvas(canvas);
+
+    const ctx = canvas.getContext('2d');
+    state.stickers.forEach(s => {
+      ctx.save();
+      ctx.translate(s.x, s.y);
+      ctx.scale(s.scale, s.scale);
+      ctx.font = '50px serif';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(s.text, 0, 0);
+      ctx.restore();
+    });
+  }
+
+  // =========================================================
+  // ✅ Text
+  // =========================================================
+  function syncTitleInputsFromState(){
+    const t = state.titleText;
+    const inp = document.getElementById('input-title-content');
+    const fs = document.getElementById('title-font-selector');
+    const sz = document.getElementById('title-font-size');
+    if(inp) inp.value = t.text || '';
+    if(fs) fs.value = t.fontFamily || 'Jua';
+    if(sz) sz.value = t.fontSize || 68;
+    syncTitleColorButton();
+  }
+
+  function clearTitleInputs(){
+    const inp = document.getElementById('input-title-content');
+    const fs = document.getElementById('title-font-selector');
+    const sz = document.getElementById('title-font-size');
+    if(inp) inp.value = '';
+    if(fs) fs.value = 'Jua';
+    if(sz) sz.value = '68';
+    syncTitleColorButton();
+  }
+
+  function syncTitleColorButton(){
+    const btn = document.getElementById('btn-title-color');
+    if(!btn) return;
+    const col = (state.titleText.color ?? defaultTitleColorForFrame());
+    btn.style.backgroundColor = col;
+  }
+
+  function syncBodyColorButton(){
+    const btn = document.getElementById('btn-body-color');
+    if(!btn) return;
+    const col = (state.selectedType === 'text' && state.selectedItem && !isTitleItem(state.selectedItem))
+      ? (state.selectedItem.color || state.currentBodyColor)
+      : state.currentBodyColor;
+    btn.style.backgroundColor = col;
+  }
+
+  function onTitleFontChanged(val){
+    state.titleText.fontFamily = val;
+    if(state.selectedType === 'text' && state.selectedItem && isTitleItem(state.selectedItem)){
+      state.selectedItem.fontFamily = val;
+      renderTexts();
+      drawBaseWithStickers('bg-canvas-text');
+    }
+  }
+
+  function onBodyFontChanged(val){
+    if(state.selectedType === 'text' && state.selectedItem && !isTitleItem(state.selectedItem)){
+      state.selectedItem.fontFamily = val;
+      renderTexts();
+      drawBaseWithStickers('bg-canvas-text');
+      syncBodyColorButton();
+    }
+  }
+
+  function getDefaultTextPosition(){
+    const { canvasW, canvasH, marginX, startY, gapY, photoAspectH, dateBottomPadding, dateTextTopGap } = FRAME_LAYOUT;
+    const imgW = canvasW - (marginX * 2);
+    const imgH = imgW * photoAspectH;
+
+    const lastPhotoBottom = startY + 3*(imgH + gapY) + imgH;
+    const dateBaselineY   = canvasH - dateBottomPadding;
+    const textZoneTop     = lastPhotoBottom + dateTextTopGap;
+    const textZoneBottom  = dateBaselineY - 20;
+
+    const y = Math.max(textZoneTop + 10, Math.min((textZoneTop + textZoneBottom)/2, textZoneBottom - 10));
+    const x = canvasW / 2;
+    return { x, y };
+  }
+
+  function applyTitleFromInputs(){
+    const inp = document.getElementById('input-title-content');
+    const fs = document.getElementById('title-font-selector');
+    const sz = document.getElementById('title-font-size');
+
+    const text = (inp?.value || '').trim();
+    if(!text){
+      alert('제목을 입력해 주세요.');
+      return;
+    }
+
+    const fontFamily = fs?.value || 'Jua';
+    const fontSize = Math.min(140, Math.max(18, parseInt(sz?.value || '68', 10)));
+
+    state.titleEnabled = true;
+    state.titleText.text = text;
+    state.titleText.fontFamily = fontFamily;
+    state.titleText.fontSize = fontSize;
+
+    const pos = getTitleDefaultPosition(fontSize);
+    state.titleText.x = pos.x;
+    state.titleText.y = pos.y;
+
+    state.selectedType = 'text';
+    state.selectedItem = state.titleText;
+
+    syncTitleInputsFromState();
+    syncBodyInputsFromSelection();
+    updateAddApplyButtonLabel();
+
+    if(isStepVisible('step-decorate-text')){
+      renderTexts();
+      drawBaseWithStickers('bg-canvas-text');
+    }
+  }
+
+  function syncBodyInputsFromSelection(){
+    const ta = document.getElementById('input-text-content');
+    const fs = document.getElementById('font-selector');
+    if(!ta || !fs) return;
+
+    if(state.selectedType === 'text' && state.selectedItem && !isTitleItem(state.selectedItem)){
+      ta.value = state.selectedItem.text || '';
+      fs.value = state.selectedItem.fontFamily || 'Jua';
+    }
+    syncBodyColorButton();
+  }
+
+  function updateAddApplyButtonLabel(){
+    const btn = document.getElementById('btn-add-or-apply');
+    if(!btn) return;
+    const isBodySelected = (state.selectedType === 'text' && state.selectedItem && !isTitleItem(state.selectedItem));
+    btn.textContent = isBodySelected ? '적용' : '추가';
+  }
+
+  function addOrApplyBodyText(){
+    const ta = document.getElementById('input-text-content');
+    const fs = document.getElementById('font-selector');
+    const text = (ta?.value || '').trim();
+    if(!text) return alert('문구를 입력해 주세요.');
+
+    if(state.selectedType === 'text' && state.selectedItem && !isTitleItem(state.selectedItem)){
+      state.selectedItem.text = text;
+      state.selectedItem.fontFamily = fs?.value || state.selectedItem.fontFamily || 'Jua';
+      renderTexts();
+      drawBaseWithStickers('bg-canvas-text');
+      return;
+    }
+
+    const pos = getDefaultTextPosition();
+    const item = {
+      id: makeId(),
+      role: 'body',
+      text,
+      x: pos.x,
+      y: pos.y,
+      fontSize: 56,
+      fontFamily: fs?.value || 'Jua',
+      color: state.currentBodyColor || '#000000'
+    };
+    state.texts.push(item);
+
+    state.selectedItem = item;
+    state.selectedType = 'text';
+    syncBodyInputsFromSelection();
+    updateAddApplyButtonLabel();
+
+    renderTexts();
+    drawBaseWithStickers('bg-canvas-text');
+  }
+
+  function getTextBoxCanvas(ctx, t){
+    const fontSize = t.fontSize || 46;
+    const ff = t.fontFamily || 'Jua';
+    ctx.save();
+    ctx.font = `${fontSize}px ${ff}`;
+
+    const lines = String(t.text||'').split('\n').slice(0,2);
+    const widths = lines.map(line => ctx.measureText(line).width);
+    const maxW = Math.max(10, ...widths);
+    const lineH = fontSize * 1.15;
+    const h = lineH * lines.length;
+
+    ctx.restore();
+
+    const padX = 22;
+    const padY = 18;
+
+    return {
+      x1: t.x - (maxW/2) - padX,
+      y1: t.y - (h/2) - padY,
+      x2: t.x + (maxW/2) + padX,
+      y2: t.y + (h/2) + padY,
+      w: maxW + padX*2,
+      h: h + padY*2
+    };
+  }
+
+  function renderTexts(){
+    const canvas = document.getElementById('text-canvas');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    const all = getAllTextItems();
+
+    all.forEach(t => {
+      ctx.save();
+      ctx.translate(t.x, t.y);
+      const fs = t.fontSize || 46;
+      const ff = t.fontFamily || 'Jua';
+      ctx.font = `${fs}px ${ff}`;
+
+      const col = (isTitleItem(t) ? (t.color ?? defaultTitleColorForFrame()) : (t.color || '#000'));
+      ctx.fillStyle = col;
+
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+
+      const lines = String(t.text||'').split('\n').slice(0,2);
+      const lineH = fs * 1.15;
+      const startY = -(lineH*(lines.length-1))/2;
+      lines.forEach((line,i)=>ctx.fillText(line,0,startY+i*lineH));
+      ctx.restore();
+    });
+
+    if(state.selectedType === 'text' && state.selectedItem){
+      const box = getTextBoxCanvas(ctx, state.selectedItem);
+      drawHandlesFixed(ctx, box);
+    }
+  }
+
+  function deleteTitleFully(){
+    state.titleEnabled = false;
+    state.titleText.text = '추억네컷';
+    state.titleText.fontFamily = 'Jua';
+    state.titleText.fontSize = 68;
+    state.titleText.color = null;
+
+    const pos = getTitleDefaultPosition(state.titleText.fontSize);
+    state.titleText.x = pos.x;
+    state.titleText.y = pos.y;
+
+    state.selectedItem = null;
+    state.selectedType = null;
+
+    clearTitleInputs();
+    renderTexts();
+    drawBaseWithStickers('bg-canvas-text');
+  }
+
+  function initTextInteractionEvents(canvasId){
+    const canvas = document.getElementById(canvasId);
+    if(!canvas) return;
+
+    canvas.style.touchAction = 'none';
+
+    canvas.onpointerdown = null;
+    canvas.onpointermove = null;
+    canvas.onpointerup = null;
+    canvas.onpointercancel = null;
+
+    let active = null;
+
+    function hitBox(p, box){
+      return (p.x >= box.x1 && p.x <= box.x2 && p.y >= box.y1 && p.y <= box.y2);
+    }
+
+    function pickText(p){
+      const ctx = canvas.getContext('2d');
+      const all = getAllTextItems();
+
+      for(let i = all.length - 1; i >= 0; i--){
+        const it = all[i];
+        const box = getTextBoxCanvas(ctx, it);
+        const { delCx, delCy, resCx, resCy } = getHandleCentersFromBox(box);
+
+        const onDel = hitHandle(p.x, p.y, delCx, delCy);
+        const onRes = hitHandle(p.x, p.y, resCx, resCy);
+        const onBody = hitBox(p, box);
+
+        if(onDel || onRes || onBody){
+          return { item: it, onDel, onRes, onBody };
+        }
+      }
+      return null;
+    }
+
+    function deleteTextById(id){
+      if(id === state.titleText.id){
+        deleteTitleFully();
+        return;
+      }
+
+      const idx = state.texts.findIndex(t => t.id === id);
+      if(idx > -1) state.texts.splice(idx, 1);
+
+      state.selectedItem = null;
+      state.selectedType = null;
+      updateAddApplyButtonLabel();
+      renderTexts();
+      syncBodyColorButton();
+    }
+
+    canvas.onpointerdown = (e) => {
+      const p = getCanvasPoint(canvas, e.clientX, e.clientY);
+      const hit = pickText(p);
+
+      if(!hit){
+        state.selectedItem = null;
+        state.selectedType = null;
+        updateAddApplyButtonLabel();
+        renderTexts();
+        syncBodyColorButton();
+        return;
+      }
+
+      state.selectedItem = hit.item;
+      state.selectedType = 'text';
+
+      if(isTitleItem(hit.item)){
+        syncTitleInputsFromState();
+      }else{
+        syncBodyInputsFromSelection();
+      }
+      updateAddApplyButtonLabel();
+
+      renderTexts();
+
+      if(hit.onDel){
+        deleteTextById(hit.item.id);
+        return;
+      }
+
+      if(hit.onRes){
+        const cx = hit.item.x;
+        const cy = hit.item.y;
+        const startDist = Math.max(1, Math.hypot(p.x - cx, p.y - cy));
+        active = { mode:'resize', item: hit.item, cx, cy, startDist, startFontSize: hit.item.fontSize || 56 };
+        canvas.setPointerCapture(e.pointerId);
+        return;
+      }
+
+      active = { mode:'drag', item: hit.item, offsetX: hit.item.x - p.x, offsetY: hit.item.y - p.y };
+      canvas.setPointerCapture(e.pointerId);
+    };
+
+    canvas.onpointermove = (e) => {
+      if(!active) return;
+      const p = getCanvasPoint(canvas, e.clientX, e.clientY);
+
+      if(active.mode === 'drag'){
+        active.item.x = p.x + active.offsetX;
+        active.item.y = p.y + active.offsetY;
+        renderTexts();
+        return;
+      }
+
+      if(active.mode === 'resize'){
+        const newDist = Math.max(1, Math.hypot(p.x - active.cx, p.y - active.cy));
+        const ratio = newDist / active.startDist;
+        const newSize = Math.round(active.startFontSize * ratio);
+        active.item.fontSize = Math.min(140, Math.max(18, newSize));
+
+        if(isTitleItem(active.item)){
+          const tsize = document.getElementById('title-font-size');
+          if(tsize) tsize.value = String(active.item.fontSize);
+        }
+        renderTexts();
+      }
+    };
+
+    canvas.onpointerup = () => { active = null; };
+    canvas.onpointercancel = () => { active = null; };
+  }
+
+  // =========================================================
+  // ✅ Color modal
+  // =========================================================
+  function openColorPicker(target){
+    state._colorTarget = target;
+    const modal = document.getElementById('color-modal');
+    const title = document.getElementById('color-modal-title');
+    const native = document.getElementById('native-color');
+
+    const boxTitle = document.getElementById('color-palette-title');
+    const boxBody  = document.getElementById('color-palette-body');
+
+    const gridTitle = document.getElementById('pastel-color-grid');
+    const gridBodyP = document.getElementById('body-pastel5-grid');
+    const gridBodyS = document.getElementById('body-solid10-grid');
+
+    if(!modal || !title || !native || !boxTitle || !boxBody || !gridTitle || !gridBodyP || !gridBodyS) return;
+
+    if(target === 'title'){
+      boxTitle.classList.remove('hidden');
+      boxBody.classList.add('hidden');
+      title.textContent = '제목 색깔';
+
+      gridTitle.innerHTML = '';
+      pastel15.forEach(col => {
+        const b = document.createElement('button');
+        b.className = 'round-color-btn';
+        b.style.backgroundColor = col;
+        b.onclick = () => applyPickedColor(col);
+        gridTitle.appendChild(b);
+      });
+
+      const current = (state.titleText.color ?? defaultTitleColorForFrame());
+      native.value = current;
+    }else{
+      boxBody.classList.remove('hidden');
+      boxTitle.classList.add('hidden');
+      title.textContent = '문구 색깔';
+
+      gridBodyP.innerHTML = '';
+      bodyPastel5.forEach(col => {
+        const b = document.createElement('button');
+        b.className = 'round-color-btn';
+        b.style.backgroundColor = col;
+        b.onclick = () => applyPickedColor(col);
+        gridBodyP.appendChild(b);
+      });
+
+      gridBodyS.innerHTML = '';
+      bodySolid10.forEach(col => {
+        const b = document.createElement('button');
+        b.className = 'round-color-btn';
+        b.style.backgroundColor = col;
+        b.onclick = () => applyPickedColor(col);
+        gridBodyS.appendChild(b);
+      });
+
+      const current = (state.selectedType === 'text' && state.selectedItem && !isTitleItem(state.selectedItem))
+        ? (state.selectedItem.color || state.currentBodyColor)
+        : state.currentBodyColor;
+
+      native.value = current;
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeColorPicker(){
+    const modal = document.getElementById('color-modal');
+    if(modal) modal.classList.add('hidden');
+    state._colorTarget = null;
+  }
+
+  function applyPickedColor(col){
+    if(state._colorTarget === 'title'){
+      state.titleText.color = col;
+      syncTitleColorButton();
+      if(isStepVisible('step-decorate-text')){
+        renderTexts();
+        drawBaseWithStickers('bg-canvas-text');
+      }
+      closeColorPicker();
+      return;
+    }
+
+    state.currentBodyColor = col;
+    if(state.selectedType === 'text' && state.selectedItem && !isTitleItem(state.selectedItem)){
+      state.selectedItem.color = col;
+      renderTexts();
+      drawBaseWithStickers('bg-canvas-text');
+    }
+    syncBodyColorButton();
+    closeColorPicker();
+  }
+
+  function openNativeColor(){
+    const native = document.getElementById('native-color');
+    if(native) native.click();
+  }
+
+  function applyNativeColor(){
+    const native = document.getElementById('native-color');
+    if(!native) return;
+    applyPickedColor(native.value);
+  }
+
+  // =========================================================
+  // ✅ Result
+  // =========================================================
+  async function buildFinalCanvases(){
+    const baseW = FRAME_LAYOUT.canvasW, baseH = FRAME_LAYOUT.canvasH;
+
+    const out = document.getElementById('print-canvas');
+    out.width = baseW; out.height = baseH;
+
+    await drawFrameCanvas(out);
+    const octx = out.getContext('2d');
+
+    state.stickers.forEach(s => {
+      octx.save();
+      octx.translate(s.x, s.y);
+      octx.scale(s.scale, s.scale);
+      octx.font='50px serif';
+      octx.textAlign='center'; octx.textBaseline='middle';
+      octx.fillText(s.text,0,0);
+      octx.restore();
+    });
+
+    const all = getAllTextItems();
+    all.forEach(t => {
+      octx.save();
+      octx.translate(t.x, t.y);
+      const fs = t.fontSize || 46;
+      const ff = t.fontFamily || 'Jua';
+      octx.font = `${fs}px ${ff}`;
+      octx.fillStyle = (isTitleItem(t) ? (t.color ?? defaultTitleColorForFrame()) : (t.color || '#000'));
+      octx.textAlign='center'; octx.textBaseline='middle';
+      const lines = String(t.text||'').split('\n').slice(0,2);
+      const lineH = fs*1.15;
+      const startY = -(lineH*(lines.length-1))/2;
+      lines.forEach((line,i)=>octx.fillText(line,0,startY+i*lineH));
+      octx.restore();
+    });
+
+    // 4x6 (두 장 나란히)
+    const out46 = document.getElementById('print-canvas-4x6');
+    out46.width = baseW*2;
+    out46.height = baseH;
+    const pctx = out46.getContext('2d');
+    pctx.setTransform(1,0,0,1,0,0);
+    pctx.clearRect(0,0,out46.width,out46.height);
+    pctx.drawImage(out,0,0);
+    pctx.drawImage(out,baseW,0);
+  }
+
+  async function finishDecorate(){
+    await buildFinalCanvases();
+    showStep('step-result');
+  }
+
+  function downloadResult(){
+    const c = document.getElementById('print-canvas');
+    const a = document.createElement('a');
+    a.href = c.toDataURL('image/jpeg', 0.95);
+    a.download = `추억네컷_${makeTimeStamp()}.jpg`;
+    a.click();
+  }
+
+  function downloadPrintResult(){
+    const c = document.getElementById('print-canvas-4x6');
+    const a = document.createElement('a');
+    a.href = c.toDataURL('image/jpeg', 0.95);
+    a.download = `추억네컷_출력용_${makeTimeStamp()}.jpg`;
+    a.click();
+  }
+
+  function resetDecorationsOnly(){
+    state.frameStyle = '#ffffff';
+    state.stickers = [];
+    state.texts = [];
+    state.selectedItem = null;
+    state.selectedType = null;
+    state.currentBodyColor = '#000000';
+
+    state.titleEnabled = false;
+    state.titleText.text = '추억네컷';
+    state.titleText.fontFamily = 'Jua';
+    state.titleText.fontSize = 68;
+    state.titleText.color = null;
+
+    const pos = getTitleDefaultPosition(state.titleText.fontSize);
+    state.titleText.x = pos.x;
+    state.titleText.y = pos.y;
+
+    syncTitleColorButton();
+    syncBodyColorButton();
+  }
+
+  function resetToHome(){
+    clearAllUploads();
+    resetDecorationsOnly();
+    showStep('step-start');
+  }
+
+  function isStepVisible(stepId){
+    const el = document.getElementById(stepId);
+    return el && !el.classList.contains('hidden');
+  }
+
+  // =========================================================
+  // ✅ Keyboard Delete (Sticker/Text)
+  // =========================================================
+  function deleteSelectedItemByKeyboard(){
+    if(!(state.selectedItem && state.selectedType)) return;
+
+    if(state.selectedType === 'sticker'){
+      const idx = state.stickers.findIndex(s => s.id === state.selectedItem.id);
+      if(idx > -1) state.stickers.splice(idx, 1);
+      state.selectedItem = null;
+      state.selectedType = null;
+      renderStickers();
+      return;
+    }
+
+    if(state.selectedType === 'text'){
+      if(isTitleItem(state.selectedItem)){
+        deleteTitleFully();
+        return;
+      }
+      const idx = state.texts.findIndex(t => t.id === state.selectedItem.id);
+      if(idx > -1) state.texts.splice(idx, 1);
+      state.selectedItem = null;
+      state.selectedType = null;
+      updateAddApplyButtonLabel();
+      renderTexts();
+      syncBodyColorButton();
+    }
+  }
+
+  // ✅ [추가] 입력 폼에 포커스가 있으면 전역 Delete/Backspace 핫키를 막지 않음
+  function isTypingTarget(el){
+    if(!el) return false;
+    const tag = (el.tagName || '').toLowerCase();
+    if(tag === 'input' || tag === 'textarea' || tag === 'select') return true;
+    if(el.isContentEditable) return true;
+    return false;
+  }
+
+  // =========================================================
+  // ✅ Init
+  // =========================================================
+  document.addEventListener('DOMContentLoaded', () => {
+    lucide.createIcons();
+    updateUploadUI();
+    syncTitleColorButton();
+    syncBodyColorButton();
+    showStep('step-start');
+
+    // ✅ [변경] 입력 중에는 Delete/Backspace를 가로채지 않게 예외 처리
+    document.addEventListener('keydown', (e) => {
+      const key = e.key;
+      if(key === 'Delete' || key === 'Backspace'){
+        if(isTypingTarget(document.activeElement)){
+          // 입력창에서는 기본 동작(글자 삭제) 유지
+          return;
+        }
+        if(isStepVisible('step-decorate-sticker') || isStepVisible('step-decorate-text')){
+          e.preventDefault();
+          deleteSelectedItemByKeyboard();
+        }
+      }
+    });
+  });
+</script>
+</body>
+</html>
