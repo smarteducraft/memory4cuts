@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>추억네컷 (V1.01)</title>
+  <title>추억네컷 (V1.02)</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -45,22 +45,22 @@
 
     .font-selector{padding:8px;border-radius:8px;border:1px solid #e5e7eb;font-size:14px;cursor:pointer;}
 
-    /* ✅ [변경] 제목/문구 입력창 배경 통일 + 입력 영역 흰색 */
+    /* ✅ 제목/문구 입력창 배경 통일 + 입력 영역 흰색 */
     .mini-input{
       width:100%;
       padding:8px 10px;
       border:1px solid #e5e7eb;
       border-radius:12px;
-      background:#ffffff;          /* ✅ 흰색 */
+      background:#ffffff;
       font-size:13px;
       outline:none;
-      user-select:text;            /* ✅ 입력영역 선택 허용 */
+      user-select:text;
       -webkit-user-select:text;
     }
     .mini-input:focus{ box-shadow:0 0 0 3px rgba(236,72,153,.16); border-color:#f9a8d4; }
 
     .input-surface{
-      background:#ffffff;          /* ✅ 문구 textarea도 흰색 */
+      background:#ffffff;
       user-select:text;
       -webkit-user-select:text;
     }
@@ -118,7 +118,7 @@
     <header class="bg-white p-3 shadow-sm flex justify-center items-center z-10 shrink-0 h-14 border-b">
       <div class="flex items-center gap-2">
         <i data-lucide="image" class="text-pink-500 w-6 h-6"></i>
-        <h1 class="text-xl font-jua text-pink-600">추억네컷 <span class="text-xs text-gray-400 font-normal">V1.01</span></h1>
+        <h1 class="text-xl font-jua text-pink-600">추억네컷 <span class="text-xs text-gray-400 font-normal">V1.02</span></h1>
       </div>
     </header>
 
@@ -190,7 +190,6 @@
         <!-- slots -->
         <div class="w-full flex-1 overflow-y-auto hide-scrollbar px-1 pb-3">
           <div class="grid grid-cols-2 gap-3">
-            <!-- slot 1..4 -->
             <div class="slot aspect-square" id="slot-0" onclick="triggerSlot(0)">
               <div class="slot-badge">1</div>
               <input id="file-0" type="file" accept="image/*" class="hidden" onchange="onSlotFile(0, event)" />
@@ -313,7 +312,6 @@
                 </button>
               </div>
 
-              <!-- ✅ 흰색 입력 영역 -->
               <input id="input-title-content" class="mini-input" placeholder="예: 우리 반 추억" />
 
               <div class="grid grid-cols-2 gap-2 mt-2">
@@ -346,7 +344,6 @@
             <div class="rounded-xl border border-gray-200 bg-white p-3 mt-2">
               <div class="text-pink-600 font-jua mb-2">(아래) 원하는 내용 입력</div>
 
-              <!-- ✅ 흰색 입력 영역 + 동일 톤 -->
               <textarea id="input-text-content" rows="2" placeholder="하단 문구를 입력하세요 (최대 2줄)"
                 class="input-surface w-full p-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 font-gothic text-sm resize-none"></textarea>
 
@@ -469,11 +466,12 @@
   // =========================================================
   // ✅ Version control
   // =========================================================
-  const APP_VERSION = "V1.01";
+  const APP_VERSION = "V1.02";
 
   // ✅ 버전 히스토리
   // - 추억네컷 (V1.00): 최초 업로드형 4컷 + 프레임/스티커/문구 편집 + 저장/출력용
   // - 추억네컷 (V1.01): 입력창(제목/문구)에서 Del/Backspace 정상 동작, 입력창 배경/입력영역 흰색 통일
+  // - 추억네컷 (V1.02): 완성본 하단 날짜 출력 제거
 
   // =========================================================
   // ✅ Handle sizes
@@ -527,17 +525,12 @@
   // ---------- State ----------
   let state = {
     version: APP_VERSION,
-
-    // 업로드된 4장 (dataURL)
     photos: [null, null, null, null],
     selectedIndices: [0,1,2,3],
-
     frameStyle: '#ffffff',
     todayStr: new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit' }),
-
     stickers: [],
     texts: [],
-
     titleEnabled: false,
     titleText: {
       id: 'title-text',
@@ -549,15 +542,12 @@
       fontFamily: 'Jua',
       color: null
     },
-
     selectedItem: null,
     selectedType: null,
-
     currentBodyColor: '#000000',
     _colorTarget: null
   };
 
-  // Frame colors (same vibe)
   const colors = [
     '#ffffff', '#f3f4f6', '#d1d5db', '#4b5563', '#1f2937', '#000000',
     '#FAD0C4', '#FFD1DC', '#FFABAB', '#FFC3A0', '#FF9AA2', '#FFB7B2',
@@ -604,9 +594,6 @@
   }
   function isTitleItem(it){ return it && it.role === 'title'; }
 
-  // =========================================================
-  // ✅ Step switch
-  // =========================================================
   function showStep(stepId){
     document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
     document.getElementById(stepId).classList.remove('hidden');
@@ -649,9 +636,6 @@
     showStep('step-upload');
   }
 
-  // =========================================================
-  // ✅ Upload (4 slots)
-  // =========================================================
   function triggerSlot(i){
     const input = document.getElementById(`file-${i}`);
     if(input) input.click();
@@ -674,7 +658,6 @@
     const dataUrl = await readFileAsDataURL(f);
     state.photos[i] = dataUrl;
 
-    // paint slot
     const slot = document.getElementById(`slot-${i}`);
     const ph = document.getElementById(`slot-ph-${i}`);
     const img = document.getElementById(`slot-img-${i}`);
@@ -722,9 +705,6 @@
     }
   }
 
-  // =========================================================
-  // ✅ Frame palette
-  // =========================================================
   function initColorPalette(){
     const grid = document.getElementById('color-dots-grid');
     if(!grid) return;
@@ -754,7 +734,8 @@
   }
 
   // =========================================================
-  // ✅ Draw frame (photos + date)
+  // ✅ Draw frame (photos)
+  // ✅ [변경] 날짜 출력 제거
   // =========================================================
   async function drawFrameCanvas(canvasOrId){
     const canvas = (typeof canvasOrId === 'string') ? document.getElementById(canvasOrId) : canvasOrId;
@@ -822,17 +803,19 @@
       });
     }
 
+    /* ✅ 날짜 출력 제거(아예 그리지 않음)
     const isDark = ['#000000','#1f2937','#4b5563'].includes(state.frameStyle);
     ctx.fillStyle = isDark ? '#aaaaaa' : '#555555';
     ctx.font = '30px Noto Sans KR';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.fillText(state.todayStr, canvas.width/2, canvas.height - FRAME_LAYOUT.dateBottomPadding);
+    */
   }
 
-  // =========================================================
-  // ✅ Sticker
-  // =========================================================
+  // ====== 이하 로직(스티커/텍스트/색상/결과/키보드) ======
+  // (V1.01 그대로 유지) -------------- START --------------
+
   function renderStickerGrid(){
     const grid = document.getElementById('sticker-grid');
     if(!grid) return;
@@ -876,9 +859,8 @@
     ctx.strokeRect(box.x1, box.y1, box.x2-box.x1, box.y2-box.y1);
 
     const { delCx, delCy, resCx, resCy } = getHandleCentersFromBox(box);
-    const r = HANDLE_VISUAL_R;
+    const r = 24;
 
-    // delete
     ctx.fillStyle = '#ef4444';
     ctx.beginPath(); ctx.arc(delCx, delCy, r, 0, Math.PI*2); ctx.fill();
     ctx.strokeStyle = 'white';
@@ -890,7 +872,6 @@
     ctx.lineTo(delCx - r*0.55, delCy + r*0.55);
     ctx.stroke();
 
-    // resize
     ctx.fillStyle = '#3b82f6';
     ctx.beginPath(); ctx.arc(resCx, resCy, r, 0, Math.PI*2); ctx.fill();
     ctx.strokeStyle = 'white';
@@ -1052,9 +1033,6 @@
     });
   }
 
-  // =========================================================
-  // ✅ Text
-  // =========================================================
   function syncTitleInputsFromState(){
     const t = state.titleText;
     const inp = document.getElementById('input-title-content');
@@ -1111,14 +1089,15 @@
   }
 
   function getDefaultTextPosition(){
-    const { canvasW, canvasH, marginX, startY, gapY, photoAspectH, dateBottomPadding, dateTextTopGap } = FRAME_LAYOUT;
+    const { canvasW, marginX, startY, gapY, photoAspectH } = FRAME_LAYOUT;
     const imgW = canvasW - (marginX * 2);
     const imgH = imgW * photoAspectH;
 
     const lastPhotoBottom = startY + 3*(imgH + gapY) + imgH;
-    const dateBaselineY   = canvasH - dateBottomPadding;
-    const textZoneTop     = lastPhotoBottom + dateTextTopGap;
-    const textZoneBottom  = dateBaselineY - 20;
+
+    // ✅ 날짜 영역이 없어졌으므로, 하단 여백을 고정적으로 사용
+    const textZoneTop = lastPhotoBottom + 40;
+    const textZoneBottom = FRAME_LAYOUT.canvasH - 40;
 
     const y = Math.max(textZoneTop + 10, Math.min((textZoneTop + textZoneBottom)/2, textZoneBottom - 10));
     const x = canvasW / 2;
@@ -1237,9 +1216,7 @@
       x1: t.x - (maxW/2) - padX,
       y1: t.y - (h/2) - padY,
       x2: t.x + (maxW/2) + padX,
-      y2: t.y + (h/2) + padY,
-      w: maxW + padX*2,
-      h: h + padY*2
+      y2: t.y + (h/2) + padY
     };
   }
 
@@ -1423,9 +1400,6 @@
     canvas.onpointercancel = () => { active = null; };
   }
 
-  // =========================================================
-  // ✅ Color modal
-  // =========================================================
   function openColorPicker(target){
     state._colorTarget = target;
     const modal = document.getElementById('color-modal');
@@ -1529,9 +1503,6 @@
     applyPickedColor(native.value);
   }
 
-  // =========================================================
-  // ✅ Result
-  // =========================================================
   async function buildFinalCanvases(){
     const baseW = FRAME_LAYOUT.canvasW, baseH = FRAME_LAYOUT.canvasH;
 
@@ -1567,7 +1538,6 @@
       octx.restore();
     });
 
-    // 4x6 (두 장 나란히)
     const out46 = document.getElementById('print-canvas-4x6');
     out46.width = baseW*2;
     out46.height = baseH;
@@ -1632,9 +1602,6 @@
     return el && !el.classList.contains('hidden');
   }
 
-  // =========================================================
-  // ✅ Keyboard Delete (Sticker/Text)
-  // =========================================================
   function deleteSelectedItemByKeyboard(){
     if(!(state.selectedItem && state.selectedType)) return;
 
@@ -1662,7 +1629,6 @@
     }
   }
 
-  // ✅ [추가] 입력 폼에 포커스가 있으면 전역 Delete/Backspace 핫키를 막지 않음
   function isTypingTarget(el){
     if(!el) return false;
     const tag = (el.tagName || '').toLowerCase();
@@ -1671,9 +1637,6 @@
     return false;
   }
 
-  // =========================================================
-  // ✅ Init
-  // =========================================================
   document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
     updateUploadUI();
@@ -1681,14 +1644,10 @@
     syncBodyColorButton();
     showStep('step-start');
 
-    // ✅ [변경] 입력 중에는 Delete/Backspace를 가로채지 않게 예외 처리
     document.addEventListener('keydown', (e) => {
       const key = e.key;
       if(key === 'Delete' || key === 'Backspace'){
-        if(isTypingTarget(document.activeElement)){
-          // 입력창에서는 기본 동작(글자 삭제) 유지
-          return;
-        }
+        if(isTypingTarget(document.activeElement)) return;
         if(isStepVisible('step-decorate-sticker') || isStepVisible('step-decorate-text')){
           e.preventDefault();
           deleteSelectedItemByKeyboard();
